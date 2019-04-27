@@ -4,8 +4,7 @@ from unittest import TestCase
 import sys
 import os
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from cli_args import cli_args
+from simple_cli_args import cli_args
 
 
 @cli_args
