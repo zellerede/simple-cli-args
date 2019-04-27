@@ -35,12 +35,19 @@ class ClassForClassMethod:
         return True
 
 
-class TestCliArgs(TestCase):
+class TestAction(TestCase):
 
     def action(self, args):
         sys.argv = [''] + args.split()
         (self.apple, self.pear, self.banana, self.args,
-         self.kwargs) = plain_method()
+         self.kwargs) = self.method_to_test()
+
+
+class TestCliArgs(TestAction):
+
+    def __init__(self, *args):
+        TestAction.__init__(self, *args)
+        self.method_to_test = plain_method
 
     def test_default_value(self):
         self.action(args='app pea')
@@ -65,4 +72,10 @@ class TestCliArgs(TestCase):
         self.assertEqual(self.banana, 'no')
 
 
-#class TestClassMethod(TestCase, ClassForClassMethod):
+class TestClassMethod(TestCliArgs, ClassForClassMethod):
+
+    def __init__(self, *args):
+        TestAction.__init__(self, *args)
+        self.method_to_test = self.class_method
+
+    # TCs inherited
