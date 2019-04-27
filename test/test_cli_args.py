@@ -19,28 +19,19 @@ def no_args_method():
     return True
 
 
-class ClassForClassMethod:
-
-    @cli_args
-    def class_method(self, apple, pear, banana=9, *args, **kwargs):
-        """ method docstring """
-        self.apple = apple
-        self.pear = pear
-        self.banana = banana
-        self.args = args
-        self.kwargs = kwargs
-
-    @cli_args
-    def class_no_args_method(self):
-        return True
-
-
-class TestCliArgs(TestCase):
+class TestAction(TestCase):
 
     def action(self, args):
         sys.argv = [''] + args.split()
         (self.apple, self.pear, self.banana, self.args,
-         self.kwargs) = plain_method()
+         self.kwargs) = self.method_to_test()
+
+
+class TestCliArgs(TestAction):
+
+    def __init__(self, *args):
+        TestAction.__init__(self, *args)
+        self.method_to_test = plain_method
 
     def test_default_value(self):
         self.action(args='app pea')
@@ -65,4 +56,11 @@ class TestCliArgs(TestCase):
         self.assertEqual(self.banana, 'no')
 
 
-#class TestClassMethod(TestCase, ClassForClassMethod):
+#
+class TestCliArgsEmptyArgs(TestAction):
+
+    def __init__(self, *args):
+        TestAction.__init__(self, *args)
+        self.method_to_test = no_args_method
+
+    # TCs to be added
