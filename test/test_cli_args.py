@@ -63,4 +63,12 @@ class TestCliArgsEmptyArgs(TestAction):
         TestAction.__init__(self, *args)
         self.method_to_test = no_args_method
 
+    def action(self, args):
+        sys.argv = [''] + args.split()
+        self.result = self.method_to_test()
+
+    def test_empty_call(self):
+        self.action(args='')
+        self.assertTrue(self.result)
+
     # TCs to be added
