@@ -1,6 +1,7 @@
 # simple-cli-args
 A python main method decorator.<br>
-An enhancement of the `argparse` package for its simplest usages.
+An enhancement of the `argparse` package for its simplest usages.<br>
+**Requires python 3.6 or higher.**
 
 The ordinary arguments become positional, the arguments with default value become named argument for the CLI, 
 with a possibility of abbreviations, as `argparse` provides it.<br>
@@ -58,5 +59,5 @@ Then, we get the following printouts:
     optional arguments:
       -h, --help            show this help message and exit
       --cucumber | -c  CUCUMBER
-                            default: 42
+                            default: green
     

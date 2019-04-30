@@ -18,16 +18,21 @@ def no_args_method():
     return True
 
 
+def another_method():
+    """ another docstring """
+    pass
+
+
+def no_docstring_method():
+    pass
+
+
 class TestAction(TestCase):
 
-    def __init__(self, *args):
-        TestCase.__init__(self, *args)
-        self.method_to_test = plain_method
-
-    def action(self, args):
+    def action(self, method_to_test=plain_method, args=''):
         sys.argv = [''] + args.split()
         (self.apple, self.pear, self.banana, self.args,
-         self.kwargs) = self.method_to_test()
+         self.kwargs) = method_to_test()
 
 
 class TestCliArgs(TestAction):
@@ -56,7 +61,7 @@ class TestCliArgs(TestAction):
 
 
 #
-class TestCliArgsEmptyArgs(TestCase):
+class TestCliArgsEmptyArgs(TestAction):
 
     def __init__(self, *args):
         TestCase.__init__(self, *args)
@@ -76,11 +81,55 @@ class TestCliArgsEmptyArgs(TestCase):
 #
 class TestHelp(TestAction):
 
-    def test_both_docstrings(self):
+    class FakeModule:
+        # no docstring
+        pass
+
+    def clear_module_docstring(self, method):
+        method.__module__ = self.FakeModule
+        return cli_args(method)
+
+    def get_helptext(self, method=plain_method):
         with CatchPrintout() as catch_print:
-            self.assertRaises(SystemExit, self.action, args='-h')
-            help_text = catch_print.getvalue()
-        self.assertIn(" Module docstring \n method docstring", help_text)
+            self.assertRaises(SystemExit, self.action, method, args='-h')
+            self.help_text = catch_print.getvalue()
+
+    def test_both_docstrings(self):
+        self.get_helptext()
+        self.assertIn(" Module docstring \n method docstring", self.help_text)
+
+    def test_only_method_docstring(self):
+        cli_method = self.clear_module_docstring(another_method)
+        self.get_helptext(cli_method)
+        self.assertNotIn("Module docstring", self.help_text)
+        self.assertIn(" another docstring", self.help_text)
+        self.assertEqual(self.help_text.count("docstring"), 1)
+
+    def test_only_module_docstring(self):
+        self.get_helptext(no_args_method)
+        self.assertIn(" Module docstring", self.help_text)
+        self.assertEqual(self.help_text.count("docstring"), 1)
+
+    def test_no_docstring(self):
+        cli_method = self.clear_module_docstring(no_docstring_method)
+        self.get_helptext(cli_method)
+        self.assertNotIn("docstring", self.help_text)
+
+    def test_arguments(self):
+        self.get_helptext()
+        self.assertIn('apple pear', self.help_text)
+        self.assertIn('--banana | -b  BANANA', self.help_text)
+
+
+class TestProperties(TestCase):
+
+    def test_method_names(self):
+        self.assertEqual(plain_method.__name__, 'plain_method')
+        self.assertEqual(no_args_method.__name__, 'no_args_method')
+
+    def test_method_docstring(self):
+        self.assertEqual(plain_method.__doc__, ' method docstring ')
+        self.assertFalse(no_args_method.__doc__)
 
 
 #
