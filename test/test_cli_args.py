@@ -1,8 +1,8 @@
 """ Module docstring """
 
-from unittest import TestCase
+from unittest import TestCase, main
 import sys
-import os
+from io import StringIO
 
 from simple_cli_args import cli_args
 
@@ -20,6 +20,10 @@ def no_args_method():
 
 class TestAction(TestCase):
 
+    def __init__(self, *args):
+        TestCase.__init__(self, *args)
+        self.method_to_test = plain_method
+
     def action(self, args):
         sys.argv = [''] + args.split()
         (self.apple, self.pear, self.banana, self.args,
@@ -27,10 +31,6 @@ class TestAction(TestCase):
 
 
 class TestCliArgs(TestAction):
-
-    def __init__(self, *args):
-        TestAction.__init__(self, *args)
-        self.method_to_test = plain_method
 
     def test_default_value(self):
         self.action(args='app pea')
@@ -56,10 +56,10 @@ class TestCliArgs(TestAction):
 
 
 #
-class TestCliArgsEmptyArgs(TestAction):
+class TestCliArgsEmptyArgs(TestCase):
 
     def __init__(self, *args):
-        TestAction.__init__(self, *args)
+        TestCase.__init__(self, *args)
         self.method_to_test = no_args_method
 
     def action(self, args):
@@ -71,3 +71,30 @@ class TestCliArgsEmptyArgs(TestAction):
         self.assertTrue(self.result)
 
     # TCs to be added
+
+
+#
+class TestHelp(TestAction):
+
+    def test_both_docstrings(self):
+        with CatchPrintout() as catch_print:
+            self.assertRaises(SystemExit, self.action, args='-h')
+            help_text = catch_print.getvalue()
+        self.assertIn(" Module docstring \n method docstring", help_text)
+
+
+#
+class CatchPrintout(StringIO):
+
+    def __enter__(self):
+        self._stdout = sys.stdout
+        sys.stdout = self
+        return self
+
+    def __exit__(self, *args):
+        sys.stdout = self._stdout
+
+
+#
+if __name__ == '__main__':
+    main()
