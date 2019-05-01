@@ -6,6 +6,8 @@ from io import StringIO
 
 from simple_cli_args import cli_args
 
+sys.argv=['my_cli.py']
+
 
 @cli_args
 def plain_method(apple, pear, banana=9, *args, **kwargs):
@@ -30,9 +32,11 @@ def no_docstring_method():
 class TestAction(TestCase):
 
     def action(self, method_to_test=plain_method, args=''):
-        sys.argv = [''] + args.split()
-        (self.apple, self.pear, self.banana, self.args,
-         self.kwargs) = method_to_test()
+        sys.argv = ['my_cli.py'] + args.split()
+        self.result = method_to_test()
+        if self.result not in (None, True):
+            (self.apple, self.pear, self.banana, self.args,
+             self.kwargs) = self.result
 
 
 class TestCliArgs(TestAction):
@@ -63,19 +67,18 @@ class TestCliArgs(TestAction):
 #
 class TestCliArgsEmptyArgs(TestAction):
 
-    def __init__(self, *args):
-        TestCase.__init__(self, *args)
-        self.method_to_test = no_args_method
-
-    def action(self, args):
-        sys.argv = [''] + args.split()
-        self.result = self.method_to_test()
-
     def test_empty_call(self):
-        self.action(args='')
+        self.action(no_args_method, args='')
         self.assertTrue(self.result)
 
-    # TCs to be added
+    def test_nonempty_call(self):
+        with CatchPrintout('stderr') as catch_print:
+            with self.assertRaises(SystemExit) as problematic:
+                self.action(no_args_method, args='elias tobias')
+                self.assertEqual(problematic.exception.message, 2)
+            message = catch_print.getvalue()
+        self.assertIn('usage: my_cli.py [-h]', message)
+        self.assertIn('error: unrecognized arguments: elias tobias', message)
 
 
 #
@@ -135,13 +138,17 @@ class TestProperties(TestCase):
 #
 class CatchPrintout(StringIO):
 
+    def __init__(self, channel='stdout'):
+        StringIO.__init__(self)
+        self.channel = channel
+
     def __enter__(self):
-        self._stdout = sys.stdout
-        sys.stdout = self
+        self._orig = getattr(sys, self.channel)
+        setattr(sys, self.channel, self)
         return self
 
     def __exit__(self, *args):
-        sys.stdout = self._stdout
+        setattr(sys, self.channel, self._orig)
 
 
 #
