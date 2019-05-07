@@ -8,7 +8,7 @@ with open("README.md") as f:
 
 setup(
     name="simple_cli_args",
-    version="0.1",
+    version="0.12",
     packages=['simple_cli_args'],
     author='Bertalan Pecsi',
     author_email='zellerede@gmail.com',
