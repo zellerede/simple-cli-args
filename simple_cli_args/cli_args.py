@@ -26,7 +26,6 @@ class cli_args:
         self.method = method
         self.__name__ = method.__name__
         self.__doc__ = method.__doc__
-        self.class_method = False
         self.build_argparser()
 
     def build_argparser(self):
@@ -46,8 +45,6 @@ class cli_args:
         for i in range(self.positionals):
             arg = self.arg_spec.args[i]
             if i==0 and (arg in ['self', 'cls']):
-                self.class_method = True
-                print("We have a class method:", self.__name__)
                 continue
             self.parser.add_argument(arg)
 

@@ -61,3 +61,22 @@ Then, we get the following printouts:
       --cucumber | -c  CUCUMBER
                             default: green
     
+#### Decorate a main class
+
+If main functionality is built into a class, the decorator can be used for its contructor `__init__` method, as well as for the class itself, like in the example below.
+
+    #!/usr/bin/env python3
+    from simple_cli_args import cli_args
+    
+    @cli_args
+    class Main:
+        def __init__(self, apple, banana, cucumber='green'):
+            self.fruits = apple, banana, cucumber
+        def show(self):
+            print("Our fruits are:", *self.fruits)
+    
+    if __name__ == '__main__':
+        main = Main()  # without arguments given, those will be read from the CLI
+        main.show()
+
+
