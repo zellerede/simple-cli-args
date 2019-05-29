@@ -2,22 +2,27 @@
 
 from unittest import TestCase, main
 import sys
+from pathlib import Path
 from io import StringIO
 
+sys.path.append(str(Path(__file__).parent.parent))
 from simple_cli_args import cli_args
 
 sys.argv=['my_cli.py']
 
-
-@cli_args
-def plain_method(apple, pear, banana=9, *args, **kwargs):
-    """ method docstring """
-    return (apple, pear, banana, args, kwargs)
-
-
 @cli_args
 def no_args_method():
     return True
+
+@cli_args
+def plain_method(apple, pear, banana=9):
+    """ method docstring """
+    return (apple, pear, banana)
+
+@cli_args
+def full_method(apple, pear, banana=9, *args, **kwargs):
+    """ methody docstring """
+    return (apple, pear, banana, args, kwargs)
 
 
 def another_method():
@@ -35,8 +40,7 @@ class TestAction(TestCase):
         sys.argv = ['my_cli.py'] + args.split()
         self.result = method_to_test()
         if self.result not in (None, True):
-            (self.apple, self.pear, self.banana, self.args,
-             self.kwargs) = self.result
+            (self.apple, self.pear, self.banana, *self.args) = self.result
 
 
 class TestCliArgs(TestAction):
@@ -133,6 +137,15 @@ class TestProperties(TestCase):
     def test_method_docstring(self):
         self.assertEqual(plain_method.__doc__, ' method docstring ')
         self.assertFalse(no_args_method.__doc__)
+
+
+class TestAdditionalArgs(TestAction):
+
+    def test_additional_arg1(self):
+        self.action(full_method, args='app pea lem pin')
+        self.assertEqual(self.apple, 'app')
+        self.assertEqual(self.pear, 'pea')
+        self.assertEqual(self.args, ['lem', 'pin'])
 
 
 #

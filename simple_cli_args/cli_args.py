@@ -32,6 +32,7 @@ class cli_args:
         self.arg_spec = inspect.getfullargspec(self.method)
         self.n = len(self.arg_spec.args)
         self.positionals = self.n - len(self.arg_spec.defaults or '')
+        self.additionals = self.arg_spec.varargs
         self.module = inspect.getmodule(self.method)
         descriptions = filter(bool, [self.module.__doc__, self.method.__doc__])
         self.parser = argparse.ArgumentParser(
@@ -57,9 +58,15 @@ class cli_args:
             self.parser.add_argument(f'--{arg}', help=f'default: {default}',
                                      metavar=f'| -{arg[0]}  {arg.upper()}')
 
+    def get_call_args(self):
+        if not self.additionals:
+            return self.parser.parse_args().__dict__
+        known, additional = self.parser.parse_known_args()
+        return known.__dict__
+
     def __call__(self, *args, **kwargs):
         if args or kwargs:
             return self.method(*args, **kwargs)
         # called blank()
-        cli_arguments = self.parser.parse_args().__dict__
+        cli_arguments = self.get_call_args()
         return self.method(**cli_arguments)
