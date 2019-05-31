@@ -60,13 +60,17 @@ class cli_args:
 
     def get_call_args(self):
         if not self.additionals:
-            return self.parser.parse_args().__dict__
+            return [], self.parser.parse_args().__dict__
+        #
         known, additional = self.parser.parse_known_args()
-        return known.__dict__
+        cli_kwargs = known.__dict__
+        cli_args = [cli_kwargs.pop(arg) for arg in self.arg_spec.args
+                   ] + additional
+        return cli_args, cli_kwargs
 
     def __call__(self, *args, **kwargs):
         if args or kwargs:
             return self.method(*args, **kwargs)
         # called blank()
-        cli_arguments = self.get_call_args()
-        return self.method(**cli_arguments)
+        cli_args, cli_kwargs = self.get_call_args()
+        return self.method(*cli_args, **cli_kwargs)

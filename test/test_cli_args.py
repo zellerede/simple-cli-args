@@ -8,16 +8,19 @@ from io import StringIO
 sys.path.append(str(Path(__file__).parent.parent))
 from simple_cli_args import cli_args
 
-sys.argv=['my_cli.py']
+sys.argv = ['my_cli.py']
+
 
 @cli_args
 def no_args_method():
     return True
 
+
 @cli_args
 def plain_method(apple, pear, banana=9):
     """ method docstring """
     return (apple, pear, banana)
+
 
 @cli_args
 def full_method(apple, pear, banana=9, *args, **kwargs):
@@ -40,7 +43,7 @@ class TestAction(TestCase):
         sys.argv = ['my_cli.py'] + args.split()
         self.result = method_to_test()
         if self.result not in (None, True):
-            (self.apple, self.pear, self.banana, *self.args) = self.result
+            (self.apple, self.pear, self.banana, *self.rest) = self.result
 
 
 class TestCliArgs(TestAction):
@@ -139,13 +142,36 @@ class TestProperties(TestCase):
         self.assertFalse(no_args_method.__doc__)
 
 
+#
 class TestAdditionalArgs(TestAction):
 
     def test_additional_arg1(self):
         self.action(full_method, args='app pea lem pin')
         self.assertEqual(self.apple, 'app')
         self.assertEqual(self.pear, 'pea')
-        self.assertEqual(self.args, ['lem', 'pin'])
+        self.assertEqual(self.banana, 9)
+        self.assertEqual(self.rest[0], ('lem', 'pin'))
+
+    def test_additional_arg2(self):
+        self.action(full_method, args='app pea lem --bana na mon pin eap ple')
+        self.assertEqual(self.apple, 'app')
+        self.assertEqual(self.pear, 'pea')
+        self.assertEqual(self.banana, 'na')
+        self.assertEqual(self.rest[0], ('lem', 'mon', 'pin', 'eap', 'ple'))
+
+    def test_additional_arg3(self):
+        self.action(full_method, args='app --ban=ana pea EOF')
+        self.assertEqual(self.apple, 'app')
+        self.assertEqual(self.pear, 'pea')
+        self.assertEqual(self.banana, 'ana')
+        self.assertEqual(self.rest[0], ('EOF',))
+
+    def test_additional_arg4(self):
+        self.action(full_method, args='-ba nana app pea')
+        self.assertEqual(self.apple, 'app')
+        self.assertEqual(self.pear, 'pea')
+        self.assertEqual(self.banana, 'nana')
+        self.assertFalse(self.rest[0])
 
 
 #
