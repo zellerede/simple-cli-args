@@ -8,7 +8,7 @@ with open("README.md") as f:
 
 setup(
     name="simple_cli_args",
-    version="0.20",
+    version="1.00",
     packages=['simple_cli_args'],
     author='Bertalan Pecsi',
     author_email='zellerede@gmail.com',
@@ -16,9 +16,11 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url='https://github.com/zellerede/simple-cli-args',
+    keywords='argparse cli cli-args cli_args simple-cli-args simple_cli_args',
+    install_requires=["termcolor"],
     classifiers=[
          "Programming Language :: Python :: 3",
          "License :: OSI Approved :: MIT License",
          "Operating System :: OS Independent",
-     ],
+    ],
 )

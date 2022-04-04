@@ -79,4 +79,3 @@ If main functionality is built into a class, the decorator can be used for its c
         main = Main()  # without arguments given, those will be read from the CLI
         main.show()
 
-

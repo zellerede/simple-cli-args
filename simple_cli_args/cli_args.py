@@ -13,6 +13,8 @@ class cli_args:
 
         Usage:
 
+        # my_code.py
+
         @cli_args
         def main(x,y,z=8):
             """ This function is doing nice things. """
