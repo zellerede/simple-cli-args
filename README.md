@@ -12,9 +12,9 @@ Help option (`-h` or `--help`) is automatically generated with its text taken fr
 #### Using pip
     pip install simple_cli_args
 
-or, with your intended python command in place of `python`
+or, with your intended python command in place of `python3`
 
-    python -m pip install simple_cli_args
+    python3 -m pip install simple_cli_args
 
 #### Using setuptools
 Simply issue in the main directory of the cloned git repository:
