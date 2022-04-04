@@ -19,7 +19,7 @@ class cli_args:
 
         main()  # parses the command line arguments, call e.g. by
 
-        >  my_code.py "Value for x" "Value for y" --z "Value for z"
+        $  python3 my_code.py "Value for x" "Value for y" --z "Value for z"
     '''
 
     def __init__(self, method):
@@ -41,6 +41,7 @@ class cli_args:
         )
         self.add_positional_args()
         self.add_named_args()
+        self.add_additional_args()
 
     def add_positional_args(self):
         for i in range(self.positionals):
@@ -53,10 +54,20 @@ class cli_args:
         for i,j in enumerate(range(self.positionals, self.n)):
             arg = self.arg_spec.args[j]
             default = self.arg_spec.defaults[i]
-            self.parser.add_argument(f'-{arg}', help=argparse.SUPPRESS,
-                                     default=default)
-            self.parser.add_argument(f'--{arg}', help=f'default: {default}',
-                                     metavar=f'| -{arg[0]}  {arg.upper()}')
+            self.parser.add_argument(
+                f'-{arg}',
+                help=argparse.SUPPRESS,
+                default=default
+            )
+            self.parser.add_argument(
+                f'--{arg}',
+                help=f'default: {default}',
+                metavar=f'| -{arg[0]}  {arg.upper()}'
+            )
+
+    def add_additional_args(self):
+        if self.additionals:
+            self.parser.add_argument(self.additionals, nargs='*')
 
     def get_call_args(self):
         if not self.additionals:
@@ -64,6 +75,7 @@ class cli_args:
         #
         known, additional = self.parser.parse_known_args()
         cli_kwargs = known.__dict__
+        additional = cli_kwargs.pop(self.additionals, []) + additional
         cli_args = [cli_kwargs.pop(arg) for arg in self.arg_spec.args
                    ] + additional
         return cli_args, cli_kwargs

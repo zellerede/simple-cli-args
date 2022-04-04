@@ -5,8 +5,11 @@ import sys
 from pathlib import Path
 from io import StringIO
 
-sys.path.append(str(Path(__file__).parent.parent))
-from simple_cli_args import cli_args
+from importlib.machinery import SourceFileLoader
+simple_cli_args = SourceFileLoader('simple_cli_args',
+    str(Path(__file__).absolute().parent.parent / 'simple_cli_args' / '__init__.py')
+).load_module()
+cli_args = simple_cli_args.cli_args
 
 sys.argv = ['my_cli.py']
 
@@ -43,10 +46,13 @@ class TestAction(TestCase):
         sys.argv = ['my_cli.py'] + args.split()
         self.result = method_to_test()
         if self.result not in (None, True):
-            (self.apple, self.pear, self.banana, *self.rest) = self.result
+            (self.apple, self.pear, self.banana, *rest) = self.result
+            if rest:
+                self.args = rest[0]
 
 
 class TestCliArgs(TestAction):
+    """ plain_method(apple, pear, banana=9) """
 
     def test_default_value(self):
         self.action(args='app pea')
@@ -105,7 +111,7 @@ class TestHelp(TestAction):
             self.help_text = catch_print.getvalue()
 
     def test_both_docstrings(self):
-        self.get_helptext()
+        self.get_helptext(plain_method)
         self.assertIn(" Module docstring \n method docstring", self.help_text)
 
     def test_only_method_docstring(self):
@@ -126,9 +132,13 @@ class TestHelp(TestAction):
         self.assertNotIn("docstring", self.help_text)
 
     def test_arguments(self):
-        self.get_helptext()
+        self.get_helptext(plain_method)
         self.assertIn('apple pear', self.help_text)
         self.assertIn('--banana | -b  BANANA', self.help_text)
+
+    def test_list_arguments(self):
+        self.get_helptext(full_method)
+        self.assertIn('[args [args ...]]', self.help_text)
 
 
 class TestProperties(TestCase):
@@ -150,28 +160,28 @@ class TestAdditionalArgs(TestAction):
         self.assertEqual(self.apple, 'app')
         self.assertEqual(self.pear, 'pea')
         self.assertEqual(self.banana, 9)
-        self.assertEqual(self.rest[0], ('lem', 'pin'))
+        self.assertEqual(self.args, ('lem', 'pin'))
 
     def test_additional_arg2(self):
         self.action(full_method, args='app pea lem --bana na mon pin eap ple')
         self.assertEqual(self.apple, 'app')
         self.assertEqual(self.pear, 'pea')
         self.assertEqual(self.banana, 'na')
-        self.assertEqual(self.rest[0], ('lem', 'mon', 'pin', 'eap', 'ple'))
+        self.assertEqual(self.args, ('lem', 'mon', 'pin', 'eap', 'ple'))
 
     def test_additional_arg3(self):
         self.action(full_method, args='app --ban=ana pea EOF')
         self.assertEqual(self.apple, 'app')
         self.assertEqual(self.pear, 'pea')
         self.assertEqual(self.banana, 'ana')
-        self.assertEqual(self.rest[0], ('EOF',))
+        self.assertEqual(self.args, ('EOF',))
 
     def test_additional_arg4(self):
         self.action(full_method, args='-ba nana app pea')
         self.assertEqual(self.apple, 'app')
         self.assertEqual(self.pear, 'pea')
         self.assertEqual(self.banana, 'nana')
-        self.assertFalse(self.rest[0])
+        self.assertFalse(self.args)
 
 
 #
