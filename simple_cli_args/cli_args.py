@@ -2,6 +2,7 @@
 
 import argparse
 import inspect
+from termcolor import cprint
 
 
 #
@@ -21,6 +22,9 @@ class cli_args:
 
         $  python3 my_code.py "Value for x" "Value for y" --z "Value for z"
     '''
+
+    ERROR_MARKER = '-' * 40 + '\n'
+    ERROR_COLOR = 'red'
 
     def __init__(self, method):
         self.method = method
@@ -85,4 +89,21 @@ class cli_args:
             return self.method(*args, **kwargs)
         # called blank()
         cli_args, cli_kwargs = self.get_call_args()
-        return self.method(*cli_args, **cli_kwargs)
+        try:
+            return self.method(*cli_args, **cli_kwargs)
+        except Exception as e:
+            filename, lineno = self.get_error_info(e.__traceback__)
+            self.print_err(self.ERROR_MARKER)
+            self.print_err(f"ERROR in {filename}, at line {lineno}: {e}")
+
+    # bonus:
+    def get_error_info(self, traceback):
+        while traceback:
+            last_traceback = traceback
+            traceback = traceback.tb_next
+        filename = last_traceback.tb_frame.f_code.co_filename
+        lineno = last_traceback.tb_lineno
+        return filename, lineno
+
+    def print_err(self, *args):
+        cprint(*args, color=self.ERROR_COLOR)

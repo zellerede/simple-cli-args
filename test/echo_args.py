@@ -8,9 +8,16 @@ simple_cli_args = SourceFileLoader('simple_cli_args',
 ).load_module()
 cli_args = simple_cli_args.cli_args
 
+def g():
+    1/0
+
+def f():
+    g()
+
 @cli_args
 def main(apple, banana, cucumber='green', *others):
     print("Our fruits are:", apple, banana, cucumber, '|', ', '.join(others))
+    # f()
 
 if __name__ == '__main__':
     main()
