@@ -30,19 +30,41 @@ def full_method(apple, pear, banana=9, *args, **kwargs):
     """ methody docstring """
     return (apple, pear, banana, args, kwargs)
 
+@cli_args
+class PureClass:
+    """ Class docstring """
+
+    def __init__(self, apple, pear, banana=9):
+        """ even constructor docstring """
+        self.fruits = (apple, pear, banana)
+
+
+@cli_args
+class MainClass:
+    """ Class docstring """
+
+    def __init__(self, apple, pear, banana=9, *args, **kwargs):
+        """ even constructor docstring """
+        self.fruits = (apple, pear, banana, args, kwargs)
+
 
 def another_method():
     """ another docstring """
     pass
 
 
+@cli_args
 def no_docstring_method():
     pass
 
 
 class TestAction(TestCase):
+    default_method = staticmethod(plain_method)
 
-    def action(self, method_to_test=plain_method, args=''):
+    def action(self, method_to_test=None, args=''):
+        if method_to_test is None:
+            method_to_test = self.default_method
+
         sys.argv = ['my_cli.py'] + args.split()
         self.result = method_to_test()
         if self.result not in (None, True):
@@ -155,33 +177,46 @@ class TestProperties(TestCase):
 #
 class TestAdditionalArgs(TestAction):
 
+    default_method = staticmethod(full_method)
+
     def test_additional_arg1(self):
-        self.action(full_method, args='app pea lem pin')
+        self.action(args='app pea lem pin')
         self.assertEqual(self.apple, 'app')
         self.assertEqual(self.pear, 'pea')
         self.assertEqual(self.banana, 9)
         self.assertEqual(self.args, ('lem', 'pin'))
 
     def test_additional_arg2(self):
-        self.action(full_method, args='app pea lem --bana na mon pin eap ple')
+        self.action(args='app pea lem --bana na mon pin eap ple')
         self.assertEqual(self.apple, 'app')
         self.assertEqual(self.pear, 'pea')
         self.assertEqual(self.banana, 'na')
         self.assertEqual(self.args, ('lem', 'mon', 'pin', 'eap', 'ple'))
 
     def test_additional_arg3(self):
-        self.action(full_method, args='app --ban=ana pea EOF')
+        self.action(args='app --ban=ana pea EOF')
         self.assertEqual(self.apple, 'app')
         self.assertEqual(self.pear, 'pea')
         self.assertEqual(self.banana, 'ana')
         self.assertEqual(self.args, ('EOF',))
 
     def test_additional_arg4(self):
-        self.action(full_method, args='-ba nana app pea')
+        self.action(args='-ba nana app pea')
         self.assertEqual(self.apple, 'app')
         self.assertEqual(self.pear, 'pea')
         self.assertEqual(self.banana, 'nana')
         self.assertFalse(self.args)
+
+
+#
+class TestCliArgsPureClass(TestCliArgs):
+    def default_method(self):
+        return PureClass().fruits
+
+
+class TestCliArgsMainClass(TestCliArgs, TestAdditionalArgs):
+    def default_method(self):
+        return MainClass().fruits
 
 
 #

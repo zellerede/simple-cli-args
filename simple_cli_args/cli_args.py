@@ -36,6 +36,7 @@ class cli_args:
 
     def build_argparser(self):
         self.arg_spec = inspect.getfullargspec(self.method)
+        self.remove_leading_self_arg()
         self.n = len(self.arg_spec.args)
         self.positionals = self.n - len(self.arg_spec.defaults or '')
         self.additionals = self.arg_spec.varargs
@@ -49,11 +50,15 @@ class cli_args:
         self.add_named_args()
         self.add_additional_args()
 
+    def remove_leading_self_arg(self):
+        if self.arg_spec.args:
+            leading_arg = self.arg_spec.args[0]
+            if leading_arg in ['self', 'cls']:
+                self.arg_spec.args.pop(0)
+
     def add_positional_args(self):
         for i in range(self.positionals):
             arg = self.arg_spec.args[i]
-            if i==0 and (arg in ['self', 'cls']):
-                continue
             self.parser.add_argument(arg)
 
     def add_named_args(self):
