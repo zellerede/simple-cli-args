@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
 
+""" To publish a version:
+=============================
+  *  increase the version number
+  *  py3 setup.py sdist
+  *  twine upload dist/*
+"""
+
 from setuptools import setup
 
 with open("README.md") as f:
@@ -8,7 +15,7 @@ with open("README.md") as f:
 
 setup(
     name="simple_cli_args",
-    version="1.00",
+    version="1.01",
     packages=['simple_cli_args'],
     author='Bertalan Pecsi',
     author_email='zellerede@gmail.com',
