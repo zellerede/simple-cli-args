@@ -64,16 +64,19 @@ class cli_args:
     def add_named_args(self):
         for i,j in enumerate(range(self.positionals, self.n)):
             arg = self.arg_spec.args[j]
+            # to avoid clash with  --help | -h
+            abbreviated = arg.capitalize() if arg.startswith('h') else arg
             default = self.arg_spec.defaults[i]
             self.parser.add_argument(
-                f'-{arg}',
+                f'-{abbreviated}',
+                dest=arg,
                 help=argparse.SUPPRESS,
                 default=default
             )
             self.parser.add_argument(
                 f'--{arg}',
                 help=f'default: {default}',
-                metavar=f'| -{arg[0]}  {arg.upper()}'
+                metavar=f'| -{abbreviated[0]}  {arg.upper()}'
             )
 
     def add_additional_args(self):

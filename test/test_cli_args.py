@@ -5,11 +5,8 @@ import sys
 from pathlib import Path
 from io import StringIO
 
-from importlib.machinery import SourceFileLoader
-simple_cli_args = SourceFileLoader('simple_cli_args',
-    str(Path(__file__).absolute().parent.parent / 'simple_cli_args' / '__init__.py')
-).load_module()
-cli_args = simple_cli_args.cli_args
+sys.path = [str(Path(__file__).absolute().parent.parent)] + sys.path
+from simple_cli_args import cli_args
 
 sys.argv = ['my_cli.py']
 
@@ -29,6 +26,12 @@ def plain_method(apple, pear, banana=9):
 def full_method(apple, pear, banana=9, *args, **kwargs):
     """ methody docstring """
     return (apple, pear, banana, args, kwargs)
+
+@cli_args
+def method_with_param_h(house=3):
+    """ help for param-h method """
+    return (1, 2, house)
+
 
 @cli_args
 class PureClass:
@@ -67,6 +70,7 @@ class TestAction(TestCase):
 
         sys.argv = ['my_cli.py'] + args.split()
         self.result = method_to_test()
+        print(f'*** {self.result}')  ###
         if self.result not in (None, True):
             (self.apple, self.pear, self.banana, *rest) = self.result
             if rest:
@@ -97,6 +101,14 @@ class TestCliArgs(TestAction):
     def test_full_name(self):
         self.action(args='app pea --banana no')
         self.assertEqual(self.banana, 'no')
+
+    def test_abbreviate_h(self):
+        self.action(method_with_param_h, args="-H casa")
+        self.assertEqual(self.banana, "casa")
+
+    def test_abbreviate_h_2(self):
+        self.action(method_with_param_h, args="")
+        self.assertEqual(self.banana, 3)
 
 
 #
@@ -161,6 +173,13 @@ class TestHelp(TestAction):
     def test_list_arguments(self):
         self.get_helptext(full_method)
         self.assertIn('[args ...]', self.help_text)
+
+    def test_help_for_method_with_param_h(self):
+        self.get_helptext(method_with_param_h)
+        print(self.help_text)
+        self.assertIn('usage: my_cli.py [-h]', self.help_text)
+        self.assertIn('help for param-h method', self.help_text)
+        self.assertIn('--house | -H', self.help_text)
 
 
 class TestProperties(TestCase):
