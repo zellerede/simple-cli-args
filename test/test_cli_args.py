@@ -70,7 +70,6 @@ class TestAction(TestCase):
 
         sys.argv = ['my_cli.py'] + args.split()
         self.result = method_to_test()
-        print(f'*** {self.result}')  ###
         if self.result not in (None, True):
             (self.apple, self.pear, self.banana, *rest) = self.result
             if rest:
@@ -176,7 +175,6 @@ class TestHelp(TestAction):
 
     def test_help_for_method_with_param_h(self):
         self.get_helptext(method_with_param_h)
-        print(self.help_text)
         self.assertIn('usage: my_cli.py [-h]', self.help_text)
         self.assertIn('help for param-h method', self.help_text)
         self.assertIn('--house | -H', self.help_text)
