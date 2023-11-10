@@ -160,7 +160,7 @@ class TestHelp(TestAction):
 
     def test_list_arguments(self):
         self.get_helptext(full_method)
-        self.assertIn('[args [args ...]]', self.help_text)
+        self.assertIn('[args ...]', self.help_text)
 
 
 class TestProperties(TestCase):
